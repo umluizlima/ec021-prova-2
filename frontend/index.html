@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Music.FY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  </head>
+  <body>
+    <section class="hero is-primary">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title">
+            Bem-vindo ao Music.FY!
+          </h1>
+          <h2 class="subtitle">
+            Visualize todas nossas músicas por gênero:
+          </h2>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="select">
+        <select id="genero">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+      <br><br>
+      <h3 class="title">
+        Músicas:
+      </h3>
+      <div class="columns is-multiline" id="musicas">
+      </div>
+    </section>
+  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+  </body>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      // Inicializa seletor
+      $.ajax({
+        url: "http://localhost:5000/musicfy/listarGenero",
+        type: "GET",
+        success: function(result, status, xhr) {
+          $.each(result, function(i, v) {
+            $("#genero").append(`<option value=${v.genero_id}>${v.descricao}</option>`);
+          });
+        },
+        error: function() {
+          console.log("Erro ao recuperar generos.");
+        },
+      });
+      // Atualiza lista
+      $("#genero").on("change", function() {
+        if (this.value) {
+          $.ajax({
+            url: `http://localhost:5000/musicfy/buscarMusicaPorGenero?genero_id=${this.value}`,
+            type: "GET",
+            beforeSend: function() {
+              $('#genero').attr('disabled', true);
+              $("#musicas").empty();
+            },
+            success: function(result, status, xhr) {
+              $.each(result, function(i, v) {
+                $("#musicas").append(`
+                  <div class="column is-one-quarter-desktop is-half-tablet">
+                    <div class="card">
+                      <div class="card-content">
+                        <p class="title">
+                          Música nº ${v.musica_id}
+                        </p>
+                        <p class="subtitle">
+                          Título: ${v.titulo}<br>
+                          Artista: ${v.artista}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                `);
+              });
+            },
+            error: function() {
+              console.log(`Erro ao recuperar musica ${this.value}.`);
+            },
+            complete: function() {
+              $('#genero').attr('disabled', false);
+            },
+          });
+        }
+      });
+    });
+  </script>
+</html>
